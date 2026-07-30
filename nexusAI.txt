@@ -1,0 +1,19 @@
+backend/
+├── app/
+│   ├── __init__.py           <-- Empty file (Important!)
+│   ├── main.py               <-- CREATED JUST NOW
+│   ├── config.py
+│   ├── api/
+│   │   ├── __init__.py       <-- Empty file (Important!)
+│   │   └── hub.py            <-- YOUR ROUTER FILE
+│   ├── core/
+│   │   ├── __init__.py       <-- Empty file
+│   │   ├── academic_engine.py
+│   │   └── hub_generator.py
+│   └── db/
+│       ├── __init__.py       <-- Empty file
+│       ├── database.py
+│       └── models.py
+├── .env
+└── requirements.txt
+uvicorn app.main:app --reload --port 8000
