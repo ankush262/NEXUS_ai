@@ -80,3 +80,34 @@ def synthesize_nexus_report(idea: str, extracted_context: list) -> dict:
     )
 
     return json.loads(response.text)
+# Add this at the bottom of app/core/hub_generator.py
+
+def chat_with_nexus(project_context: str, user_message: str) -> str:
+    """Uses Gemini to answer follow-up questions based on the saved project data."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return "GEMINI_API_KEY is missing. Cannot chat in demo mode."
+
+    client = genai.Client(api_key=api_key)
+
+    prompt = f"""
+    You are NEXUS, an AI Research & Innovation Copilot.
+    
+    Here is the detailed project hub you previously generated for the user:
+    {project_context}
+
+    The user has a follow-up question or request regarding this specific project:
+    "{user_message}"
+
+    Answer their question directly based on the project context above. 
+    Be helpful, concise, and innovative. If they ask to modify something (like the roadmap), provide the updated version in plain text or markdown.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"Failed to connect to AI brain: {str(e)}"
