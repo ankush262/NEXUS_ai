@@ -12,6 +12,12 @@ router = APIRouter()
 
 class IdeaRequest(BaseModel):
     idea: str
+class IdeaRequest(BaseModel):
+    idea: str
+
+# ADD THIS:
+class ChatRequest(BaseModel):
+    message: str
 
 
 @router.get("/demo-hub")
@@ -144,3 +150,35 @@ def get_project_by_id(project_id: int, db: Session = Depends(get_session)):
         "project_id": project.id,
         "payload": json.loads(project.generated_data)
     }
+# Don't forget to import the new function at the top of the file!
+# from app.core.hub_generator import synthesize_nexus_report, chat_with_nexus
+
+@router.post("/projects/{project_id}/chat")
+def project_chat(project_id: int, req: ChatRequest, db: Session = Depends(get_session)):
+    """Interactive chat endpoint to ask follow-up questions about a generated project."""
+    # 1. Fetch the saved project from the database
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    from app.core.hub_generator import chat_with_nexus
+    
+    try:
+        # 2. Feed the saved JSON and the user's message to Gemini
+        ai_reply = chat_with_nexus(project.generated_data, req.message)
+        
+        # 3. Return the AI's response
+        return {
+            "project_id": project_id,
+            "user_message": req.message,
+            "ai_reply": ai_reply
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error_code": "CHAT_FAILED",
+                "message": "Failed to communicate with NEXUS AI.",
+                "details": str(e)
+            }
+        )
